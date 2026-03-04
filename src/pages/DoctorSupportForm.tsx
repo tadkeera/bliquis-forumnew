@@ -179,9 +179,9 @@ const DoctorSupportForm = () => {
           </p>
 
           <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", fontSize: "13px" }}>
-            <div style={{ textAlign: "center" }}>
+            <div style={{ textAlign: "center", position: "relative" }}>
+              {signatureUrl && <div style={{ position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)", marginBottom: "-5px" }}><img src={signatureUrl} alt="توقيع" className="signature-display" style={{ maxHeight: "50px", maxWidth: "120px", margin: "0 auto" }} /></div>}
               مقدم الطلب: <span className="out-text" style={{ display: "inline-block", borderBottom: "1px dotted #000", minWidth: "120px", textAlign: "center" }}>{formData.rep}</span>
-              {signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={signatureUrl} alt="توقيع" className="signature-display" style={{ maxHeight: "80px", margin: "0 auto" }} /></div>}
             </div>
             <div>مدير الفرع: <span style={{ display: "inline-block", borderBottom: "1px dotted #000", minWidth: "120px" }}></span></div>
           </div>
