@@ -48,8 +48,6 @@ const ConsignmentForm = () => {
   const removeClient = (idx: number) => { if (clients.length <= 1) return; setClients(prev => prev.filter((_, i) => i !== idx)); };
 
   const handleSave = () => {
-    const allClients = clients.map(c => c.clientName).filter(Boolean).join("، ");
-    save({ type: "consignment", data: { ...formData, clients, clientName: allClients, signatureUrl } });
     setShowSignature(true);
   };
 
@@ -57,6 +55,8 @@ const ConsignmentForm = () => {
 
   const handleAddSignature = (url: string) => {
     setSignatureUrl(url);
+    const allClients = clients.map(c => c.clientName).filter(Boolean).join("، ");
+    save({ type: "consignment", data: { ...formData, clients, clientName: allClients, signatureUrl: url } });
     setShowSignature(false);
     toast({ title: "تم الحفظ", description: "تم حفظ نموذج التصريف مع التوقيع بنجاح" });
   };

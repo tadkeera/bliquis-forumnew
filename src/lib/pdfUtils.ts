@@ -14,7 +14,17 @@ export async function exportToPdf(elementId: string, fileName: string = 'documen
   element.style.padding = '1cm';
   element.style.boxSizing = 'border-box';
 
-  await new Promise(r => setTimeout(r, 100));
+  // Wait for all images (including signature data URLs) to load
+  const images = element.querySelectorAll('img');
+  await Promise.all(Array.from(images).map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise<void>(resolve => {
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
+  }));
+
+  await new Promise(r => setTimeout(r, 300));
 
   const canvas = await html2canvas(element, {
     scale: 2,
@@ -133,6 +143,7 @@ export function printElement(elementId: string) {
   .out-text { font-weight: bold; color: #000 !important; }
   .box { border: 1px solid #000; border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; }
   .box-receipt { background-color: #f9f9f9; border: 2px solid #000; }
+  .signature-display { width: 200px; height: auto; max-height: 120px; filter: contrast(2.5) brightness(0.3) saturate(2); }
   @page { size: A4; margin: 0.5cm; }
   @media print { .no-print { display: none !important; } }
 </style>
@@ -141,5 +152,5 @@ export function printElement(elementId: string) {
 </html>`);
   printWindow.document.close();
   printWindow.focus();
-  setTimeout(() => printWindow.print(), 300);
+  setTimeout(() => printWindow.print(), 500);
 }

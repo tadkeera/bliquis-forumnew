@@ -200,11 +200,12 @@
 
   /* Signature styles - larger and bolder */
   .signature-display {
-    filter: contrast(2.5) brightness(0.5) saturate(1.5);
-    transform: scale(2);
-    transform-origin: center;
+    filter: contrast(2.5) brightness(0.3) saturate(2);
+    -webkit-filter: contrast(2.5) brightness(0.3) saturate(2);
     image-rendering: auto;
-    -webkit-filter: contrast(2.5) brightness(0.5) saturate(1.5);
+    width: 200px !important;
+    height: auto !important;
+    max-height: 120px !important;
   }
 }
 

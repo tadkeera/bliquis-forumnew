@@ -50,7 +50,7 @@ const Reports = () => {
     setTimeout(async () => {
       await exportToPdf("record-preview-print", `${typeLabels[record.type] || record.type}-${getRecordName(record)}.pdf`);
       setViewRecord(null);
-    }, 500);
+    }, 800);
   };
 
   const handleExportHtml = (record: FormRecord) => {
@@ -58,7 +58,7 @@ const Reports = () => {
     setTimeout(() => {
       exportToHtml("record-preview-print", `${typeLabels[record.type] || record.type}-${getRecordName(record)}.html`);
       setViewRecord(null);
-    }, 500);
+    }, 800);
   };
 
   const handlePrint = (record: FormRecord) => {
@@ -66,7 +66,7 @@ const Reports = () => {
     setTimeout(() => {
       printElement("record-preview-print");
       setViewRecord(null);
-    }, 500);
+    }, 800);
   };
 
   const startEdit = (record: FormRecord) => {
