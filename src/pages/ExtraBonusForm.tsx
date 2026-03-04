@@ -39,12 +39,12 @@ const ExtraBonusForm = () => {
   const removeItem = (i: number) => setItems(prev => prev.filter((_, idx) => idx !== i));
 
   const handleSave = () => {
-    save({ type: "extra-bonus", data: { ...formData, items, clientName: formData.subject, signatureUrl } });
     setShowSignature(true);
   };
 
   const handleAddSignature = (url: string) => {
     setSignatureUrl(url);
+    save({ type: "extra-bonus", data: { ...formData, items, clientName: formData.subject, signatureUrl: url } });
     setShowSignature(false);
     toast({ title: "تم الحفظ", description: "تم حفظ نموذج البونص الإضافي مع التوقيع بنجاح" });
   };

@@ -38,12 +38,12 @@ const DoctorSupportForm = () => {
   const removePharmacy = (index: number) => setPharmacies(prev => prev.filter((_, i) => i !== index));
 
   const handleSave = () => {
-    save({ type: "doctor-support", data: { ...formData, pharmacies, doctorName: formData.doctor, signatureUrl } });
     setShowSignature(true);
   };
 
   const handleAddSignature = (url: string) => {
     setSignatureUrl(url);
+    save({ type: "doctor-support", data: { ...formData, pharmacies, doctorName: formData.doctor, signatureUrl: url } });
     setShowSignature(false);
     toast({ title: "تم الحفظ", description: "تم حفظ الاستمارة مع التوقيع بنجاح" });
   };
