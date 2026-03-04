@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,54 +6,47 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import FormHeader from "@/components/FormHeader";
 import ExportPdfButton from "@/components/ExportPdfButton";
 import SignaturePrompt from "@/components/SignaturePrompt";
+import DraggableSignature, { SignaturePosition } from "@/components/DraggableSignature";
 import { save } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { Save, RotateCcw, Plus, Trash2 } from "lucide-react";
 
-interface BonusItem {
-  name: string;
-  qty: string;
-  bonusPercent: string;
-  compensation: string;
-}
+interface BonusItem { name: string; qty: string; bonusPercent: string; compensation: string; }
 
 const ExtraBonusForm = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    date: "", branch: "", recipient: "", subject: "",
-    invoice: "", paymentType: "", rep: "",
-  });
+  const [formData, setFormData] = useState({ date: "", branch: "", recipient: "", subject: "", invoice: "", paymentType: "", rep: "" });
   const [items, setItems] = useState<BonusItem[]>([]);
   const [newItem, setNewItem] = useState<BonusItem>({ name: "", qty: "", bonusPercent: "", compensation: "" });
   const [showSignature, setShowSignature] = useState(false);
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
+  const [pendingSignature, setPendingSignature] = useState<string | null>(null);
+  const [confirmedPosition, setConfirmedPosition] = useState<SignaturePosition | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
-
-  const addItem = () => {
-    if (!newItem.name.trim()) return;
-    setItems(prev => [...prev, { ...newItem }]);
-    setNewItem({ name: "", qty: "", bonusPercent: "", compensation: "" });
-  };
-
+  const addItem = () => { if (!newItem.name.trim()) return; setItems(prev => [...prev, { ...newItem }]); setNewItem({ name: "", qty: "", bonusPercent: "", compensation: "" }); };
   const removeItem = (i: number) => setItems(prev => prev.filter((_, idx) => idx !== i));
 
-  const handleSave = () => {
-    setShowSignature(true);
-  };
+  const handleSave = () => setShowSignature(true);
 
   const handleAddSignature = (url: string) => {
-    setSignatureUrl(url);
-    save({ type: "extra-bonus", data: { ...formData, items, clientName: formData.subject, signatureUrl: url } });
     setShowSignature(false);
+    setPendingSignature(url);
+    printRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleConfirmSignature = (pos: SignaturePosition) => {
+    setSignatureUrl(pendingSignature);
+    setConfirmedPosition(pos);
+    setPendingSignature(null);
+    save({ type: "extra-bonus", data: { ...formData, items, clientName: formData.subject, signatureUrl: pendingSignature, signaturePosition: pos } });
     toast({ title: "تم الحفظ", description: "تم حفظ نموذج البونص الإضافي مع التوقيع بنجاح" });
   };
 
-  const handleReset = () => {
-    setFormData({ date: "", branch: "", recipient: "", subject: "", invoice: "", paymentType: "", rep: "" });
-    setItems([]);
-    setSignatureUrl(null);
-  };
+  const handleCancelSignature = () => setPendingSignature(null);
+
+  const handleReset = () => { setFormData({ date: "", branch: "", recipient: "", subject: "", invoice: "", paymentType: "", rep: "" }); setItems([]); setSignatureUrl(null); setConfirmedPosition(null); };
 
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
@@ -69,15 +62,11 @@ const ExtraBonusForm = () => {
             <Label>نوع الدفع</Label>
             <Select value={formData.paymentType} onValueChange={v => update("paymentType", v)}>
               <SelectTrigger><SelectValue placeholder="اختر" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="نقداً">نقداً</SelectItem>
-                <SelectItem value="آجل">آجل</SelectItem>
-              </SelectContent>
+              <SelectContent><SelectItem value="نقداً">نقداً</SelectItem><SelectItem value="آجل">آجل</SelectItem></SelectContent>
             </Select>
           </div>
           <div><Label>المندوب</Label><Input value={formData.rep} onChange={e => update("rep", e.target.value)} /></div>
         </div>
-
         <hr className="my-4 border-border" />
         <Label className="mb-2 block">الأصناف</Label>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end bg-muted p-4 rounded-lg border">
@@ -97,7 +86,6 @@ const ExtraBonusForm = () => {
             ))}
           </ul>
         )}
-
         <div className="flex flex-wrap gap-3 mt-6">
           <Button onClick={handleSave} className="gap-2"><Save className="h-4 w-4" />حفظ</Button>
           <Button variant="outline" onClick={handleReset} className="gap-2"><RotateCcw className="h-4 w-4" />مسح</Button>
@@ -107,58 +95,41 @@ const ExtraBonusForm = () => {
 
       <SignaturePrompt open={showSignature} onAddSignature={handleAddSignature} onClose={() => setShowSignature(false)} label="المندوب" />
 
-      {/* Print Preview */}
-      <div id="extra-bonus-print" className="print-area print-page">
-        <FormHeader />
+      {pendingSignature && (
+        <div className="no-print text-center mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+          <p className="text-sm font-bold text-yellow-800">⬇ اسحب التوقيع إلى الموقع المطلوب في المستند ثم اضغط ✓ للاعتماد</p>
+        </div>
+      )}
 
+      {/* Print Preview */}
+      <div id="extra-bonus-print" ref={printRef} className="print-area print-page" style={{ position: "relative" }}>
+        {pendingSignature && (
+          <DraggableSignature signatureUrl={pendingSignature} containerRef={printRef} onConfirm={handleConfirmSignature} onCancel={handleCancelSignature} />
+        )}
+        {confirmedPosition && signatureUrl && (
+          <img src={signatureUrl} alt="توقيع" className="signature-display" style={{ position: "absolute", left: `${confirmedPosition.x}px`, top: `${confirmedPosition.y}px`, transform: `scale(${confirmedPosition.scale})`, transformOrigin: "top left", maxHeight: "80px", zIndex: 10 }} />
+        )}
+
+        <FormHeader />
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
           <div>التاريخ: <span className="out-text">{formData.date}</span></div>
           <div>الفرع: <span className="out-text">{formData.branch}</span></div>
         </div>
-
-        <div style={{ fontWeight: "bold", marginBottom: "5px" }}>
-          الأخ/ <span className="out-text">{formData.recipient}</span>
-        </div>
+        <div style={{ fontWeight: "bold", marginBottom: "5px" }}>الأخ/ <span className="out-text">{formData.recipient}</span></div>
         <div style={{ textAlign: "left", fontWeight: "bold", marginBottom: "5px" }}>المحترم</div>
         <p style={{ textAlign: "center" }}>بعد التحية ،،،،،</p>
-
         <div style={{ fontWeight: "bold", margin: "10px 0" }}>الموضوع: بونص اضافي او دعم <span className="out-text">{formData.subject}</span></div>
         <p>بالإشارة الى الموضوع أعلاه نرجو تكرمكم بالموافقة على صرف البونص الإضافي للمذكور وذلك على النحو التالي :-</p>
-
         <table className="compact-table">
-          <thead>
-            <tr>
-              <th>الرقم</th>
-              <th>اسم الصنف</th>
-              <th>الكمية المشتراة</th>
-              <th>نسبة البونص</th>
-              <th>كمية التعويض عدد</th>
-            </tr>
-          </thead>
+          <thead><tr><th>الرقم</th><th>اسم الصنف</th><th>الكمية المشتراة</th><th>نسبة البونص</th><th>كمية التعويض عدد</th></tr></thead>
           <tbody>
-            {items.length === 0 ? (
-              <tr><td colSpan={5} style={{ color: "#777" }}>لم يتم إضافة أصناف</td></tr>
-            ) : items.map((item, i) => (
-              <tr key={i}>
-                <td>{i + 1}</td>
-                <td>{item.name}</td>
-                <td>{item.qty}</td>
-                <td>{item.bonusPercent}</td>
-                <td>{item.compensation}</td>
-              </tr>
-            ))}
+            {items.length === 0 ? <tr><td colSpan={5} style={{ color: "#777" }}>لم يتم إضافة أصناف</td></tr> : items.map((item, i) => <tr key={i}><td>{i + 1}</td><td>{item.name}</td><td>{item.qty}</td><td>{item.bonusPercent}</td><td>{item.compensation}</td></tr>)}
           </tbody>
         </table>
-
         <div style={{ fontWeight: "bold", marginBottom: "15px" }}>وذلك بفاتورة رقم: <span className="out-text">{formData.invoice}</span> (<span className="out-text">{formData.paymentType}</span>)</div>
         <p>وعليه .... التزم بتصريف البضاعة المباعة وعدم إرجاعها ونتحمل المسئولية كامله .</p>
-
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", fontWeight: "bold", textAlign: "center" }}>
-          <div>
-            المندوب<br />
-            <span className="out-text">{formData.rep}</span>
-            {signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={signatureUrl} alt="توقيع" className="signature-display" style={{ maxHeight: "80px", margin: "0 auto" }} /></div>}
-          </div>
+          <div>المندوب<br /><span className="out-text">{formData.rep}</span></div>
           <div>مدير الفرع<br /><br />...................</div>
           <div>المكتب العلمي<br /><br />...................</div>
           <div>مدير القطاع<br /><br />...................</div>

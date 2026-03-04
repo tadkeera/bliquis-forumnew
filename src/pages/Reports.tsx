@@ -170,10 +170,13 @@ const Reports = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{viewRecord ? typeLabels[viewRecord.type] : ""}</DialogTitle></DialogHeader>
           {viewRecord && (
-            <div id="record-preview-print" className="print-page" style={{ border: "2px solid #000", borderRadius: "5px" }}>
-              <FormHeader />
-              <RecordPrintContent record={viewRecord} />
-            </div>
+              <div id="record-preview-print" className="print-page" style={{ border: "2px solid #000", borderRadius: "5px", position: "relative" }}>
+               <FormHeader />
+               {viewRecord.data.signatureUrl && viewRecord.data.signaturePosition && (
+                 <img src={viewRecord.data.signatureUrl as string} alt="توقيع" className="signature-display" style={{ position: "absolute", left: `${(viewRecord.data.signaturePosition as any).x}px`, top: `${(viewRecord.data.signaturePosition as any).y}px`, transform: `scale(${(viewRecord.data.signaturePosition as any).scale})`, transformOrigin: "top left", maxHeight: "80px", zIndex: 10 }} />
+               )}
+               <RecordPrintContent record={viewRecord} />
+             </div>
           )}
         </DialogContent>
       </Dialog>
@@ -230,7 +233,6 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
         <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginTop: "20px" }}>
           <div style={{ textAlign: "center" }}>
             مقدم الطلب: {d.rep as string}
-            {d.signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "80px" }} /></div>}
           </div>
           <div>مدير الفرع: ............</div>
         </div>
@@ -294,10 +296,7 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
         <div style={{ fontWeight: "bold" }}>فاتورة رقم: {d.invoice as string} ({d.paymentType as string})</div>
         <p>وعليه .... التزم بتصريف البضاعة المباعة وعدم إرجاعها ونتحمل المسئولية كامله .</p>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center" }}>
-          <div>
-            المندوب: {d.rep as string}
-            {d.signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "80px" }} /></div>}
-          </div>
+          <div>المندوب: {d.rep as string}</div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
           <div>مدير القطاع: ............</div>
@@ -334,10 +333,7 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
           </table>
         )}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center" }}>
-          <div>
-            المندوب: {d.rep as string}
-            {d.signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "80px" }} /></div>}
-          </div>
+          <div>المندوب: {d.rep as string}</div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
           <div>مدير القطاع: ............</div>
