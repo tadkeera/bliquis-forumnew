@@ -230,7 +230,7 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
         <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginTop: "20px" }}>
           <div style={{ textAlign: "center" }}>
             مقدم الطلب: {d.rep as string}
-            {d.signatureUrl && <div style={{ marginTop: "8px", padding: "5px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "60px" }} /></div>}
+            {d.signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "80px" }} /></div>}
           </div>
           <div>مدير الفرع: ............</div>
         </div>
@@ -296,7 +296,7 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center" }}>
           <div>
             المندوب: {d.rep as string}
-            {d.signatureUrl && <div style={{ marginTop: "8px", padding: "5px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "60px" }} /></div>}
+            {d.signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "80px" }} /></div>}
           </div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
@@ -336,7 +336,7 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center" }}>
           <div>
             المندوب: {d.rep as string}
-            {d.signatureUrl && <div style={{ marginTop: "8px", padding: "5px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "60px" }} /></div>}
+            {d.signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={d.signatureUrl as string} alt="توقيع" className="signature-display" style={{ maxHeight: "80px" }} /></div>}
           </div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>

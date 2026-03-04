@@ -200,9 +200,11 @@
 
   /* Signature styles - larger and bolder */
   .signature-display {
-    filter: contrast(1.8) brightness(0.7);
-    transform: scale(1.5);
+    filter: contrast(2.5) brightness(0.5) saturate(1.5);
+    transform: scale(2);
     transform-origin: center;
+    image-rendering: auto;
+    -webkit-filter: contrast(2.5) brightness(0.5) saturate(1.5);
   }
 }
 

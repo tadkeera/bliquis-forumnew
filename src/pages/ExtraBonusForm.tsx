@@ -157,7 +157,7 @@ const ExtraBonusForm = () => {
           <div>
             المندوب<br />
             <span className="out-text">{formData.rep}</span>
-            {signatureUrl && <div style={{ marginTop: "8px", padding: "5px" }}><img src={signatureUrl} alt="توقيع" className="signature-display" style={{ maxHeight: "60px", margin: "0 auto" }} /></div>}
+            {signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={signatureUrl} alt="توقيع" className="signature-display" style={{ maxHeight: "80px", margin: "0 auto" }} /></div>}
           </div>
           <div>مدير الفرع<br /><br />...................</div>
           <div>المكتب العلمي<br /><br />...................</div>
