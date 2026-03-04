@@ -1,0 +1,11 @@
+{
+  "name": "نماذج مخازن بلقيس للأدوية",
+  "short_name": "بلقيس",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#1a3a6b",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "64x64", "type": "image/x-icon" }
+  ]
+}

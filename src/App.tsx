@@ -1,27 +1,60 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
+import DoctorSupportForm from "./pages/DoctorSupportForm";
+import ConsignmentForm from "./pages/ConsignmentForm";
+import ExtraBonusForm from "./pages/ExtraBonusForm";
+import Reports from "./pages/Reports";
+import DataManagement from "./pages/DataManagement";
+import SignaturePage from "./pages/SignaturePage";
+import ActivationPage, { isActivated } from "./pages/ActivationPage";
 import NotFound from "./pages/NotFound";
+import { useAutoBackup } from "@/hooks/useAutoBackup";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const AppContent = () => {
+  useAutoBackup();
+  return (
+    <>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/doctor-support" element={<DoctorSupportForm />} />
+        <Route path="/consignment" element={<ConsignmentForm />} />
+        <Route path="/extra-bonus" element={<ExtraBonusForm />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/data-management" element={<DataManagement />} />
+        <Route path="/signature" element={<SignaturePage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+};
+
+const App = () => {
+  const [activated, setActivated] = useState(isActivated());
+
+  if (!activated) {
+    return <ActivationPage onActivated={() => setActivated(true)} />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
