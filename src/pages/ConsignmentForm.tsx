@@ -1,24 +1,17 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormHeader from "@/components/FormHeader";
 import ExportPdfButton from "@/components/ExportPdfButton";
 import SignaturePrompt from "@/components/SignaturePrompt";
+import DraggableSignature, { SignaturePosition } from "@/components/DraggableSignature";
 import { save } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { Save, RotateCcw, Plus, Trash2, UserPlus } from "lucide-react";
 
-interface ConsignmentItem {
-  name: string;
-  qty: string;
-  date: string;
-}
-
-interface ClientGroup {
-  clientName: string;
-  items: ConsignmentItem[];
-}
+interface ConsignmentItem { name: string; qty: string; date: string; }
+interface ClientGroup { clientName: string; items: ConsignmentItem[]; }
 
 const ConsignmentForm = () => {
   const { toast } = useToast();
@@ -27,6 +20,9 @@ const ConsignmentForm = () => {
   const [newItems, setNewItems] = useState<Record<number, ConsignmentItem>>({});
   const [showSignature, setShowSignature] = useState(false);
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
+  const [pendingSignature, setPendingSignature] = useState<string | null>(null);
+  const [confirmedPosition, setConfirmedPosition] = useState<SignaturePosition | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
   const updateClientName = (idx: number, name: string) => setClients(prev => prev.map((c, i) => i === idx ? { ...c, clientName: name } : c));
@@ -40,26 +36,30 @@ const ConsignmentForm = () => {
     setNewItem(clientIdx, { name: "", qty: "", date: "" });
   };
 
-  const removeItem = (clientIdx: number, itemIdx: number) => {
-    setClients(prev => prev.map((c, i) => i === clientIdx ? { ...c, items: c.items.filter((_, j) => j !== itemIdx) } : c));
-  };
-
+  const removeItem = (clientIdx: number, itemIdx: number) => setClients(prev => prev.map((c, i) => i === clientIdx ? { ...c, items: c.items.filter((_, j) => j !== itemIdx) } : c));
   const addClient = () => setClients(prev => [...prev, { clientName: "", items: [] }]);
   const removeClient = (idx: number) => { if (clients.length <= 1) return; setClients(prev => prev.filter((_, i) => i !== idx)); };
 
-  const handleSave = () => {
-    setShowSignature(true);
-  };
-
-  const handleReset = () => { setFormData({ date: "", branch: "", rep: "" }); setClients([{ clientName: "", items: [] }]); setSignatureUrl(null); };
+  const handleSave = () => setShowSignature(true);
 
   const handleAddSignature = (url: string) => {
-    setSignatureUrl(url);
-    const allClients = clients.map(c => c.clientName).filter(Boolean).join("، ");
-    save({ type: "consignment", data: { ...formData, clients, clientName: allClients, signatureUrl: url } });
     setShowSignature(false);
+    setPendingSignature(url);
+    printRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleConfirmSignature = (pos: SignaturePosition) => {
+    setSignatureUrl(pendingSignature);
+    setConfirmedPosition(pos);
+    setPendingSignature(null);
+    const allClients = clients.map(c => c.clientName).filter(Boolean).join("، ");
+    save({ type: "consignment", data: { ...formData, clients, clientName: allClients, signatureUrl: pendingSignature, signaturePosition: pos } });
     toast({ title: "تم الحفظ", description: "تم حفظ نموذج التصريف مع التوقيع بنجاح" });
   };
+
+  const handleCancelSignature = () => setPendingSignature(null);
+
+  const handleReset = () => { setFormData({ date: "", branch: "", rep: "" }); setClients([{ clientName: "", items: [] }]); setSignatureUrl(null); setConfirmedPosition(null); };
 
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
@@ -70,18 +70,12 @@ const ConsignmentForm = () => {
           <div><Label>الفرع</Label><Input value={formData.branch} onChange={e => update("branch", e.target.value)} /></div>
           <div><Label>المندوب</Label><Input value={formData.rep} onChange={e => update("rep", e.target.value)} /></div>
         </div>
-
         <hr className="my-4 border-border" />
-
         {clients.map((client, cIdx) => (
           <div key={cIdx} className="mb-4 border border-border rounded-lg p-4 bg-muted/30">
             <div className="flex items-center justify-between mb-3">
               <Label className="text-base font-bold">العميل {cIdx + 1}</Label>
-              {clients.length > 1 && (
-                <Button variant="ghost" size="sm" onClick={() => removeClient(cIdx)} className="text-destructive gap-1">
-                  <Trash2 className="h-4 w-4" />حذف العميل
-                </Button>
-              )}
+              {clients.length > 1 && <Button variant="ghost" size="sm" onClick={() => removeClient(cIdx)} className="text-destructive gap-1"><Trash2 className="h-4 w-4" />حذف العميل</Button>}
             </div>
             <Input placeholder="اسم العميل" value={client.clientName} onChange={e => updateClientName(cIdx, e.target.value)} className="mb-3" />
             <Label className="text-xs mb-2 block">الأصناف</Label>
@@ -103,11 +97,7 @@ const ConsignmentForm = () => {
             )}
           </div>
         ))}
-
-        <Button variant="outline" onClick={addClient} className="gap-2 mb-4">
-          <UserPlus className="h-4 w-4" />إضافة عميل آخر
-        </Button>
-
+        <Button variant="outline" onClick={addClient} className="gap-2 mb-4"><UserPlus className="h-4 w-4" />إضافة عميل آخر</Button>
         <div className="flex flex-wrap gap-3 mt-4">
           <Button onClick={handleSave} className="gap-2"><Save className="h-4 w-4" />حفظ</Button>
           <Button variant="outline" onClick={handleReset} className="gap-2"><RotateCcw className="h-4 w-4" />مسح</Button>
@@ -117,53 +107,47 @@ const ConsignmentForm = () => {
 
       <SignaturePrompt open={showSignature} onAddSignature={handleAddSignature} onClose={() => setShowSignature(false)} label="المندوب" />
 
+      {pendingSignature && (
+        <div className="no-print text-center mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+          <p className="text-sm font-bold text-yellow-800">⬇ اسحب التوقيع إلى الموقع المطلوب في المستند ثم اضغط ✓ للاعتماد</p>
+        </div>
+      )}
+
       {/* Print Preview */}
-      <div id="consignment-print" className="print-area print-page">
+      <div id="consignment-print" ref={printRef} className="print-area print-page" style={{ position: "relative" }}>
+        {pendingSignature && (
+          <DraggableSignature signatureUrl={pendingSignature} containerRef={printRef} onConfirm={handleConfirmSignature} onCancel={handleCancelSignature} />
+        )}
+        {confirmedPosition && signatureUrl && (
+          <img src={signatureUrl} alt="توقيع" className="signature-display" style={{ position: "absolute", left: `${confirmedPosition.x}px`, top: `${confirmedPosition.y}px`, transform: `scale(${confirmedPosition.scale})`, transformOrigin: "top left", maxHeight: "80px", zIndex: 10 }} />
+        )}
+
         <FormHeader />
-
         <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: "10px" }}>بسم الله الرحمن الرحيم</div>
-
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
           <div>التاريخ: <span className="out-text">{formData.date}</span></div>
           <div>الفرع: <span className="out-text">{formData.branch}</span></div>
         </div>
-
         <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginBottom: "15px" }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span>الاخ / مدير القطاع</span>
-            <span>الاخ / مدير المكتب العلمي</span>
-          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}><span>الاخ / مدير القطاع</span><span>الاخ / مدير المكتب العلمي</span></div>
           <div style={{ alignSelf: "flex-end" }}>المحترمين</div>
         </div>
         <p>بعد التحية ،،،،،،،،،،</p>
-
-        <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "16px", margin: "15px 0", textDecoration: "underline" }}>
-          الموضوع: إنزال بضاعة تحت التصريف
-        </div>
+        <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "16px", margin: "15px 0", textDecoration: "underline" }}>الموضوع: إنزال بضاعة تحت التصريف</div>
         <p>اشارة الى الموضوع اعلاه ، نرجو منكم الموافقة على أنزال الاصناف التالية تحت التصريف وعلى مسئوليتي متابعتها أولاً بأول وعدم وجود أي منتهيات والاصناف هي :</p>
-
         {clients.map((client, cIdx) => (
           <div key={cIdx} style={{ marginBottom: "10px" }}>
             <div style={{ fontWeight: "bold", marginBottom: "5px" }}>العميل: <span className="out-text">{client.clientName}</span></div>
             <table className="compact-table">
               <thead><tr><th>اسم الصنف</th><th>الكمية</th><th>التاريخ</th></tr></thead>
               <tbody>
-                {client.items.length === 0 ? (
-                  <tr><td colSpan={3} style={{ color: "#777" }}>لم يتم إضافة أصناف</td></tr>
-                ) : client.items.map((item, i) => (
-                  <tr key={i}><td>{item.name}</td><td>{item.qty}</td><td>{item.date}</td></tr>
-                ))}
+                {client.items.length === 0 ? <tr><td colSpan={3} style={{ color: "#777" }}>لم يتم إضافة أصناف</td></tr> : client.items.map((item, i) => <tr key={i}><td>{item.name}</td><td>{item.qty}</td><td>{item.date}</td></tr>)}
               </tbody>
             </table>
           </div>
         ))}
-
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", fontWeight: "bold", textAlign: "center" }}>
-          <div>
-            المندوب<br />
-            <span className="out-text">{formData.rep}</span>
-            {signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={signatureUrl} alt="توقيع" className="signature-display" style={{ maxHeight: "80px", margin: "0 auto" }} /></div>}
-          </div>
+          <div>المندوب<br /><span className="out-text">{formData.rep}</span></div>
           <div>مدير الفرع<br /><br />...................</div>
           <div>المكتب العلمي<br /><br />...................</div>
           <div>مدير القطاع<br /><br />...................</div>
