@@ -17,10 +17,9 @@ const FormHeader = () => {
       boxSizing: "border-box",
       backgroundColor: "#f0f2f5",
     }}>
-      {/* Left side - English */}
-      <div style={{ textAlign: "left", direction: "ltr", width: "35%", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-        <strong style={{ fontSize: "17px", color: "#1a3a6b", fontWeight: "900", letterSpacing: "0.5px" }}>Bilquis Drug Stores</strong>
-        <div style={{ width: "85%", height: "2.5px", backgroundColor: "#1a2a4a", margin: "4px 0" }}></div>
+      {/* Right side - Arabic (swapped) */}
+      <div style={{ textAlign: "right", width: "35%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <strong style={{ fontSize: "22px", color: "#1a3a6b", fontWeight: "900" }}>مخازن بلقيس للأدوية</strong>
       </div>
 
       {/* Center - Logo + URL */}
@@ -29,10 +28,9 @@ const FormHeader = () => {
         <span style={{ fontSize: "10px", color: "#333", fontWeight: "bold", marginTop: "2px" }}>www.bilquis-yo.com</span>
       </div>
 
-      {/* Right side - Arabic */}
-      <div style={{ textAlign: "right", width: "35%", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-        <strong style={{ fontSize: "18px", color: "#1a3a6b", fontWeight: "900" }}>مخازن بلقيس للأدوية</strong>
-        <div style={{ width: "85%", height: "2.5px", backgroundColor: "#c81e1e", margin: "4px 0" }}></div>
+      {/* Left side - English (swapped) */}
+      <div style={{ textAlign: "left", direction: "ltr", width: "35%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <strong style={{ fontSize: "20px", color: "#1a3a6b", fontWeight: "900", letterSpacing: "0.5px" }}>Bilquis Drug Stores</strong>
       </div>
     </div>
   );

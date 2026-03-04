@@ -181,7 +181,7 @@ const DoctorSupportForm = () => {
           <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", fontSize: "13px" }}>
             <div style={{ textAlign: "center" }}>
               مقدم الطلب: <span className="out-text" style={{ display: "inline-block", borderBottom: "1px dotted #000", minWidth: "120px", textAlign: "center" }}>{formData.rep}</span>
-              {signatureUrl && <div style={{ marginTop: "8px", padding: "5px" }}><img src={signatureUrl} alt="توقيع" className="signature-display" style={{ maxHeight: "60px", margin: "0 auto" }} /></div>}
+              {signatureUrl && <div style={{ marginTop: "10px", padding: "8px" }}><img src={signatureUrl} alt="توقيع" className="signature-display" style={{ maxHeight: "80px", margin: "0 auto" }} /></div>}
             </div>
             <div>مدير الفرع: <span style={{ display: "inline-block", borderBottom: "1px dotted #000", minWidth: "120px" }}></span></div>
           </div>
