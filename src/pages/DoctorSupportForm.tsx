@@ -4,8 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormHeader from "@/components/FormHeader";
 import ExportPdfButton from "@/components/ExportPdfButton";
-import SignaturePrompt from "@/components/SignaturePrompt";
-import DraggableSignature, { SignaturePosition } from "@/components/DraggableSignature";
 import { save } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { Save, RotateCcw, Plus, Trash2 } from "lucide-react";
@@ -25,10 +23,6 @@ const DoctorSupportForm = () => {
   });
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [newPharmacy, setNewPharmacy] = useState<Pharmacy>({ name: "", phone: "", amount: "" });
-  const [showSignature, setShowSignature] = useState(false);
-  const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
-  const [pendingSignature, setPendingSignature] = useState<string | null>(null);
-  const [confirmedPosition, setConfirmedPosition] = useState<SignaturePosition | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
@@ -41,30 +35,14 @@ const DoctorSupportForm = () => {
 
   const removePharmacy = (index: number) => setPharmacies(prev => prev.filter((_, i) => i !== index));
 
-  const handleSave = () => setShowSignature(true);
-
-  const handleAddSignature = (url: string) => {
-    setShowSignature(false);
-    setPendingSignature(url);
-    // Scroll to print preview
-    printRef.current?.scrollIntoView({ behavior: "smooth" });
+  const handleSave = () => {
+    save({ type: "doctor-support", data: { ...formData, pharmacies, doctorName: formData.doctor } });
+    toast({ title: "تم الحفظ", description: "تم حفظ الاستمارة بنجاح" });
   };
-
-  const handleConfirmSignature = (pos: SignaturePosition) => {
-    setSignatureUrl(pendingSignature);
-    setConfirmedPosition(pos);
-    setPendingSignature(null);
-    save({ type: "doctor-support", data: { ...formData, pharmacies, doctorName: formData.doctor, signatureUrl: pendingSignature, signaturePosition: pos } });
-    toast({ title: "تم الحفظ", description: "تم حفظ الاستمارة مع التوقيع بنجاح" });
-  };
-
-  const handleCancelSignature = () => setPendingSignature(null);
 
   const handleReset = () => {
     setFormData({ date: "", supervisor: "", amount: "", rep: "", doctor: "", specialty: "", morning: "", evening: "", landline: "", mobile: "", purpose: "", items: "" });
     setPharmacies([]);
-    setSignatureUrl(null);
-    setConfirmedPosition(null);
   };
 
   return (
@@ -116,42 +94,8 @@ const DoctorSupportForm = () => {
         </div>
       </div>
 
-      <SignaturePrompt open={showSignature} onAddSignature={handleAddSignature} onClose={() => setShowSignature(false)} label="مقدم الطلب" />
-
-      {pendingSignature && (
-        <div className="no-print text-center mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
-          <p className="text-sm font-bold text-yellow-800">⬇ اسحب التوقيع إلى الموقع المطلوب في المستند ثم اضغط ✓ للاعتماد</p>
-        </div>
-      )}
-
       {/* Print Preview - A4 */}
-      <div id="doctor-support-print" ref={printRef} className="print-area print-page" style={{ position: "relative" }}>
-        {pendingSignature && (
-          <DraggableSignature
-            signatureUrl={pendingSignature}
-            containerRef={printRef}
-            onConfirm={handleConfirmSignature}
-            onCancel={handleCancelSignature}
-          />
-        )}
-
-        {confirmedPosition && signatureUrl && (
-          <img
-            src={signatureUrl}
-            alt="توقيع"
-            className="signature-display"
-            style={{
-              position: "absolute",
-              left: `${confirmedPosition.x}px`,
-              top: `${confirmedPosition.y}px`,
-              transform: `scale(${confirmedPosition.scale})`,
-              transformOrigin: "top left",
-              maxHeight: "80px",
-              zIndex: 10,
-            }}
-          />
-        )}
-
+      <div id="doctor-support-print" ref={printRef} className="print-area print-page">
         <FormHeader />
         <h1 style={{ fontSize: "16px", fontWeight: "bold", margin: "5px 0 10px 0", textAlign: "center" }}>استمارة دعم طبيب</h1>
 

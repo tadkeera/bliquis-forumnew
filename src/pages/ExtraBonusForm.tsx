@@ -5,8 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FormHeader from "@/components/FormHeader";
 import ExportPdfButton from "@/components/ExportPdfButton";
-import SignaturePrompt from "@/components/SignaturePrompt";
-import DraggableSignature, { SignaturePosition } from "@/components/DraggableSignature";
 import { save } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { Save, RotateCcw, Plus, Trash2 } from "lucide-react";
@@ -18,35 +16,18 @@ const ExtraBonusForm = () => {
   const [formData, setFormData] = useState({ date: "", branch: "", recipient: "", subject: "", invoice: "", paymentType: "", rep: "" });
   const [items, setItems] = useState<BonusItem[]>([]);
   const [newItem, setNewItem] = useState<BonusItem>({ name: "", qty: "", bonusPercent: "", compensation: "" });
-  const [showSignature, setShowSignature] = useState(false);
-  const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
-  const [pendingSignature, setPendingSignature] = useState<string | null>(null);
-  const [confirmedPosition, setConfirmedPosition] = useState<SignaturePosition | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
   const addItem = () => { if (!newItem.name.trim()) return; setItems(prev => [...prev, { ...newItem }]); setNewItem({ name: "", qty: "", bonusPercent: "", compensation: "" }); };
   const removeItem = (i: number) => setItems(prev => prev.filter((_, idx) => idx !== i));
 
-  const handleSave = () => setShowSignature(true);
-
-  const handleAddSignature = (url: string) => {
-    setShowSignature(false);
-    setPendingSignature(url);
-    printRef.current?.scrollIntoView({ behavior: "smooth" });
+  const handleSave = () => {
+    save({ type: "extra-bonus", data: { ...formData, items, clientName: formData.subject } });
+    toast({ title: "تم الحفظ", description: "تم حفظ نموذج البونص الإضافي بنجاح" });
   };
 
-  const handleConfirmSignature = (pos: SignaturePosition) => {
-    setSignatureUrl(pendingSignature);
-    setConfirmedPosition(pos);
-    setPendingSignature(null);
-    save({ type: "extra-bonus", data: { ...formData, items, clientName: formData.subject, signatureUrl: pendingSignature, signaturePosition: pos } });
-    toast({ title: "تم الحفظ", description: "تم حفظ نموذج البونص الإضافي مع التوقيع بنجاح" });
-  };
-
-  const handleCancelSignature = () => setPendingSignature(null);
-
-  const handleReset = () => { setFormData({ date: "", branch: "", recipient: "", subject: "", invoice: "", paymentType: "", rep: "" }); setItems([]); setSignatureUrl(null); setConfirmedPosition(null); };
+  const handleReset = () => { setFormData({ date: "", branch: "", recipient: "", subject: "", invoice: "", paymentType: "", rep: "" }); setItems([]); };
 
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
@@ -93,23 +74,8 @@ const ExtraBonusForm = () => {
         </div>
       </div>
 
-      <SignaturePrompt open={showSignature} onAddSignature={handleAddSignature} onClose={() => setShowSignature(false)} label="المندوب" />
-
-      {pendingSignature && (
-        <div className="no-print text-center mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
-          <p className="text-sm font-bold text-yellow-800">⬇ اسحب التوقيع إلى الموقع المطلوب في المستند ثم اضغط ✓ للاعتماد</p>
-        </div>
-      )}
-
       {/* Print Preview */}
-      <div id="extra-bonus-print" ref={printRef} className="print-area print-page" style={{ position: "relative" }}>
-        {pendingSignature && (
-          <DraggableSignature signatureUrl={pendingSignature} containerRef={printRef} onConfirm={handleConfirmSignature} onCancel={handleCancelSignature} />
-        )}
-        {confirmedPosition && signatureUrl && (
-          <img src={signatureUrl} alt="توقيع" className="signature-display" style={{ position: "absolute", left: `${confirmedPosition.x}px`, top: `${confirmedPosition.y}px`, transform: `scale(${confirmedPosition.scale})`, transformOrigin: "top left", maxHeight: "80px", zIndex: 10 }} />
-        )}
-
+      <div id="extra-bonus-print" ref={printRef} className="print-area print-page">
         <FormHeader />
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
           <div>التاريخ: <span className="out-text">{formData.date}</span></div>

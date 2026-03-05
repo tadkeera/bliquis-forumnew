@@ -11,7 +11,6 @@ import ConsignmentForm from "./pages/ConsignmentForm";
 import ExtraBonusForm from "./pages/ExtraBonusForm";
 import Reports from "./pages/Reports";
 import DataManagement from "./pages/DataManagement";
-import SignaturePage from "./pages/SignaturePage";
 import ActivationPage, { isActivated } from "./pages/ActivationPage";
 import NotFound from "./pages/NotFound";
 import { useAutoBackup } from "@/hooks/useAutoBackup";
@@ -30,7 +29,6 @@ const AppContent = () => {
         <Route path="/extra-bonus" element={<ExtraBonusForm />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/data-management" element={<DataManagement />} />
-        <Route path="/signature" element={<SignaturePage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
