@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import { FileText, ClipboardList, Database, PenLine } from "lucide-react";
+import { FileText, ClipboardList, Database } from "lucide-react";
 
 const formCards = [
   {
@@ -32,12 +32,6 @@ const formCards = [
     description: "إدارة البيانات والنسخ الاحتياطي",
     path: "/data-management",
     icon: Database,
-  },
-  {
-    title: "التوقيع",
-    description: "إضافة وإدارة توقيع المندوب",
-    path: "/signature",
-    icon: PenLine,
   },
 ];
 
