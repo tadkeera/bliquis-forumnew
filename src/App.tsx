@@ -10,6 +10,7 @@ import DoctorSupportForm from "./pages/DoctorSupportForm";
 import ConsignmentForm from "./pages/ConsignmentForm";
 import ExtraBonusForm from "./pages/ExtraBonusForm";
 import Reports from "./pages/Reports";
+import ReportsIndex from "./pages/ReportsIndex";
 import DataManagement from "./pages/DataManagement";
 import ActivationPage, { isActivated } from "./pages/ActivationPage";
 import NotFound from "./pages/NotFound";
@@ -27,7 +28,8 @@ const AppContent = () => {
         <Route path="/doctor-support" element={<DoctorSupportForm />} />
         <Route path="/consignment" element={<ConsignmentForm />} />
         <Route path="/extra-bonus" element={<ExtraBonusForm />} />
-        <Route path="/reports" element={<Reports />} />
+        <Route path="/reports" element={<ReportsIndex />} />
+        <Route path="/reports/:type" element={<Reports />} />
         <Route path="/data-management" element={<DataManagement />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

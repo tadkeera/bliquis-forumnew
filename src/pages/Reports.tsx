@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
-import { getAll, deleteRecord, deleteAll, updateRecord, type FormRecord } from "@/lib/db";
+import { useParams, Link } from "react-router-dom";
+import { getByType, deleteRecord, updateRecord, type FormRecord } from "@/lib/db";
 import { exportToPdf, exportToHtml, printElement, shareViaWhatsApp, shareViaEmail } from "@/lib/pdfUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Trash, Eye, FileDown, Pencil, Printer, FileCode, Share2 } from "lucide-react";
+import { Trash2, Eye, FileDown, Pencil, Printer, FileCode, Share2, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import FormHeader from "@/components/FormHeader";
 
 const typeLabels: Record<string, string> = {
-  "doctor-support": "استمارة دعم طبيب",
-  "consignment": "نموذج تصريف",
-  "extra-bonus": "نموذج بونص إضافي",
+  "doctor-support": "سجلات نماذج دعم الأطباء",
+  "consignment": "سجلات نماذج التصريف",
+  "extra-bonus": "سجلات نماذج البونص الإضافي",
 };
 
 function getRecordName(record: FormRecord): string {
@@ -24,6 +25,8 @@ function getRecordName(record: FormRecord): string {
 }
 
 const Reports = () => {
+  const { type } = useParams<{ type: string }>();
+  const formType = (type || "doctor-support") as FormRecord["type"];
   const [records, setRecords] = useState<FormRecord[]>([]);
   const [viewRecord, setViewRecord] = useState<FormRecord | null>(null);
   const [editRecord, setEditRecord] = useState<FormRecord | null>(null);
@@ -31,19 +34,15 @@ const Reports = () => {
   const [showShareMenu, setShowShareMenu] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => { setRecords(getAll()); }, []);
+  useEffect(() => { setRecords(getByType(formType)); }, [formType]);
 
   const handleDelete = (id: string) => {
     deleteRecord(id);
-    setRecords(getAll());
+    reload();
     toast({ title: "تم الحذف", description: "تم حذف السجل بنجاح" });
   };
 
-  const handleDeleteAll = () => {
-    deleteAll();
-    setRecords([]);
-    toast({ title: "تم الحذف", description: "تم حذف جميع السجلات" });
-  };
+  const reload = () => setRecords(getByType(formType));
 
   const handleExportPdf = async (record: FormRecord) => {
     setViewRecord(record);
@@ -77,7 +76,7 @@ const Reports = () => {
   const saveEdit = () => {
     if (!editRecord) return;
     updateRecord(editRecord.id, editData);
-    setRecords(getAll());
+    reload();
     setEditRecord(null);
     toast({ title: "تم التعديل", description: "تم تحديث السجل بنجاح" });
   };
@@ -104,12 +103,11 @@ const Reports = () => {
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-primary">السجلات المحفوظة</h1>
-        {records.length > 0 && (
-          <Button variant="destructive" onClick={handleDeleteAll} className="gap-2">
-            <Trash className="h-4 w-4" />حذف الكل
-          </Button>
-        )}
+        <Link to="/reports" className="flex items-center gap-2 text-primary hover:underline">
+          <ArrowRight className="h-5 w-5" />
+          <span className="font-medium">رجوع</span>
+        </Link>
+        <h1 className="text-2xl font-bold text-primary">{typeLabels[formType] || "السجلات"}</h1>
       </div>
 
       {records.length === 0 ? (
