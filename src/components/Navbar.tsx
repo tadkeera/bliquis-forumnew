@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import { FileText, Home, ClipboardList, Database, PenLine, Menu, X } from "lucide-react";
+import { FileText, Home, ClipboardList, Database, Menu, X } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "الرئيسية", icon: Home },
@@ -10,7 +10,6 @@ const navItems = [
   { path: "/extra-bonus", label: "بونص إضافي", icon: FileText },
   { path: "/reports", label: "السجلات", icon: ClipboardList },
   { path: "/data-management", label: "النسخ الاحتياطي", icon: Database },
-  { path: "/signature", label: "التوقيع", icon: PenLine },
 ];
 
 const Navbar = () => {
@@ -28,7 +27,6 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -49,7 +47,6 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Mobile menu button */}
           <button
             className="md:hidden text-primary-foreground p-2"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -58,7 +55,6 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Mobile nav */}
         {mobileOpen && (
           <div className="md:hidden pb-4 space-y-1">
             {navItems.map((item) => {

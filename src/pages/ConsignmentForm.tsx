@@ -4,8 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormHeader from "@/components/FormHeader";
 import ExportPdfButton from "@/components/ExportPdfButton";
-import SignaturePrompt from "@/components/SignaturePrompt";
-import DraggableSignature, { SignaturePosition } from "@/components/DraggableSignature";
 import { save } from "@/lib/db";
 import { useToast } from "@/hooks/use-toast";
 import { Save, RotateCcw, Plus, Trash2, UserPlus } from "lucide-react";
@@ -18,10 +16,6 @@ const ConsignmentForm = () => {
   const [formData, setFormData] = useState({ date: "", branch: "", rep: "" });
   const [clients, setClients] = useState<ClientGroup[]>([{ clientName: "", items: [] }]);
   const [newItems, setNewItems] = useState<Record<number, ConsignmentItem>>({});
-  const [showSignature, setShowSignature] = useState(false);
-  const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
-  const [pendingSignature, setPendingSignature] = useState<string | null>(null);
-  const [confirmedPosition, setConfirmedPosition] = useState<SignaturePosition | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
@@ -40,26 +34,13 @@ const ConsignmentForm = () => {
   const addClient = () => setClients(prev => [...prev, { clientName: "", items: [] }]);
   const removeClient = (idx: number) => { if (clients.length <= 1) return; setClients(prev => prev.filter((_, i) => i !== idx)); };
 
-  const handleSave = () => setShowSignature(true);
-
-  const handleAddSignature = (url: string) => {
-    setShowSignature(false);
-    setPendingSignature(url);
-    printRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleConfirmSignature = (pos: SignaturePosition) => {
-    setSignatureUrl(pendingSignature);
-    setConfirmedPosition(pos);
-    setPendingSignature(null);
+  const handleSave = () => {
     const allClients = clients.map(c => c.clientName).filter(Boolean).join("، ");
-    save({ type: "consignment", data: { ...formData, clients, clientName: allClients, signatureUrl: pendingSignature, signaturePosition: pos } });
-    toast({ title: "تم الحفظ", description: "تم حفظ نموذج التصريف مع التوقيع بنجاح" });
+    save({ type: "consignment", data: { ...formData, clients, clientName: allClients } });
+    toast({ title: "تم الحفظ", description: "تم حفظ نموذج التصريف بنجاح" });
   };
 
-  const handleCancelSignature = () => setPendingSignature(null);
-
-  const handleReset = () => { setFormData({ date: "", branch: "", rep: "" }); setClients([{ clientName: "", items: [] }]); setSignatureUrl(null); setConfirmedPosition(null); };
+  const handleReset = () => { setFormData({ date: "", branch: "", rep: "" }); setClients([{ clientName: "", items: [] }]); };
 
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
@@ -105,23 +86,8 @@ const ConsignmentForm = () => {
         </div>
       </div>
 
-      <SignaturePrompt open={showSignature} onAddSignature={handleAddSignature} onClose={() => setShowSignature(false)} label="المندوب" />
-
-      {pendingSignature && (
-        <div className="no-print text-center mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
-          <p className="text-sm font-bold text-yellow-800">⬇ اسحب التوقيع إلى الموقع المطلوب في المستند ثم اضغط ✓ للاعتماد</p>
-        </div>
-      )}
-
       {/* Print Preview */}
-      <div id="consignment-print" ref={printRef} className="print-area print-page" style={{ position: "relative" }}>
-        {pendingSignature && (
-          <DraggableSignature signatureUrl={pendingSignature} containerRef={printRef} onConfirm={handleConfirmSignature} onCancel={handleCancelSignature} />
-        )}
-        {confirmedPosition && signatureUrl && (
-          <img src={signatureUrl} alt="توقيع" className="signature-display" style={{ position: "absolute", left: `${confirmedPosition.x}px`, top: `${confirmedPosition.y}px`, transform: `scale(${confirmedPosition.scale})`, transformOrigin: "top left", maxHeight: "80px", zIndex: 10 }} />
-        )}
-
+      <div id="consignment-print" ref={printRef} className="print-area print-page">
         <FormHeader />
         <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: "10px" }}>بسم الله الرحمن الرحيم</div>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
