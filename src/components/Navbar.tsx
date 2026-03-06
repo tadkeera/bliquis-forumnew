@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import { FileText, Home, ClipboardList, Database, Menu, X } from "lucide-react";
+import { FileText, Home, ClipboardList, Database, Menu, X, PenTool } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "الرئيسية", icon: Home },
@@ -9,6 +9,7 @@ const navItems = [
   { path: "/consignment", label: "تصريف", icon: FileText },
   { path: "/extra-bonus", label: "بونص إضافي", icon: FileText },
   { path: "/reports", label: "السجلات", icon: ClipboardList },
+  { path: "/signature", label: "التوقيع", icon: PenTool },
   { path: "/data-management", label: "النسخ الاحتياطي", icon: Database },
 ];
 

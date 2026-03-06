@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getByType, deleteRecord, updateRecord, type FormRecord } from "@/lib/db";
 import { exportToPdf, exportToHtml, printElement, shareViaWhatsApp, shareViaEmail } from "@/lib/pdfUtils";
+import { getSignature } from "@/lib/signature";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Eye, FileDown, Pencil, Printer, FileCode, Share2, ArrowRight } from "lucide-react";
+import { Trash2, Eye, FileDown, Pencil, Printer, FileCode, Share2, ArrowRight, PenTool } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import FormHeader from "@/components/FormHeader";
@@ -32,6 +33,7 @@ const Reports = () => {
   const [editRecord, setEditRecord] = useState<FormRecord | null>(null);
   const [editData, setEditData] = useState<Record<string, any>>({});
   const [showShareMenu, setShowShareMenu] = useState<string | null>(null);
+  const [signatureRecord, setSignatureRecord] = useState<FormRecord | null>(null);
   const { toast } = useToast();
 
   useEffect(() => { setRecords(getByType(formType)); }, [formType]);
@@ -79,6 +81,15 @@ const Reports = () => {
     reload();
     setEditRecord(null);
     toast({ title: "تم التعديل", description: "تم تحديث السجل بنجاح" });
+  };
+
+  const handleAddSignature = (record: FormRecord) => {
+    const sig = getSignature();
+    if (!sig) {
+      toast({ title: "لا يوجد توقيع", description: "يرجى رفع توقيع أولاً من صفحة إدارة التوقيع", variant: "destructive" });
+      return;
+    }
+    setSignatureRecord(record);
   };
 
   const editableFields: Record<string, { key: string; label: string }[]> = {
@@ -131,6 +142,9 @@ const Reports = () => {
                 <Button variant="ghost" size="icon" title="عرض" onClick={() => setViewRecord(record)}>
                   <Eye className="h-4 w-4 text-primary" />
                 </Button>
+                <Button variant="ghost" size="icon" title="إضافة صورة التوقيع" onClick={() => handleAddSignature(record)}>
+                  <PenTool className="h-4 w-4 text-primary" />
+                </Button>
                 <Button variant="ghost" size="icon" title="تعديل" onClick={() => startEdit(record)}>
                   <Pencil className="h-4 w-4 text-primary" />
                 </Button>
@@ -164,14 +178,43 @@ const Reports = () => {
       )}
 
       {/* View Dialog */}
-      <Dialog open={!!viewRecord && !editRecord} onOpenChange={() => setViewRecord(null)}>
+      <Dialog open={!!viewRecord && !editRecord && !signatureRecord} onOpenChange={() => setViewRecord(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{viewRecord ? typeLabels[viewRecord.type] : ""}</DialogTitle></DialogHeader>
           {viewRecord && (
+            <div id="record-preview-print" className="print-page" style={{ border: "2px solid #000", borderRadius: "5px" }}>
+              <FormHeader />
+              <RecordPrintContent record={viewRecord} showSignature={false} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Signature Preview Dialog */}
+      <Dialog open={!!signatureRecord} onOpenChange={() => setSignatureRecord(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>معاينة مع التوقيع</DialogTitle></DialogHeader>
+          {signatureRecord && (
+            <>
               <div id="record-preview-print" className="print-page" style={{ border: "2px solid #000", borderRadius: "5px" }}>
-               <FormHeader />
-               <RecordPrintContent record={viewRecord} />
-             </div>
+                <FormHeader />
+                <RecordPrintContent record={signatureRecord} showSignature={true} />
+              </div>
+              <div className="flex gap-2 mt-3 justify-center flex-wrap">
+                <Button onClick={async () => {
+                  await exportToPdf("record-preview-print", `${typeLabels[signatureRecord.type]}-${getRecordName(signatureRecord)}-موقع.pdf`);
+                }}>
+                  <FileDown className="h-4 w-4 ml-1" />
+                  تصدير PDF
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  printElement("record-preview-print");
+                }}>
+                  <Printer className="h-4 w-4 ml-1" />
+                  طباعة
+                </Button>
+              </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
@@ -197,7 +240,26 @@ const Reports = () => {
   );
 };
 
-function RecordPrintContent({ record }: { record: FormRecord }) {
+// Signature inline component
+function SignatureImage({ width = 80, height = 40 }: { width?: number; height?: number }) {
+  const sig = getSignature();
+  if (!sig) return null;
+  return (
+    <img
+      src={sig}
+      alt="التوقيع"
+      style={{
+        width: `${width}px`,
+        height: `${height}px`,
+        objectFit: "contain",
+        display: "inline-block",
+        verticalAlign: "middle",
+      }}
+    />
+  );
+}
+
+function RecordPrintContent({ record, showSignature = false }: { record: FormRecord; showSignature?: boolean }) {
   const d = record.data;
 
   if (record.type === "doctor-support") {
@@ -225,9 +287,11 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
           </table>
         )}
         <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "12px" }}>وعليه نلتزم بوفاء المذكور بكتابة الأصناف، وفي حالة عدم الوفاء فنحن نتحمل المسؤولية كاملة.</p>
-        <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginTop: "20px" }}>
-          <div style={{ textAlign: "center" }}>
-            مقدم الطلب: {d.rep as string}
+        {/* Applicant signature area - signature placed next to مقدم الطلب */}
+        <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginTop: "20px", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>مقدم الطلب: {d.rep as string}</span>
+            {showSignature && <SignatureImage width={90} height={45} />}
           </div>
           <div>مدير الفرع: ............</div>
         </div>
@@ -290,8 +354,12 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
         )}
         <div style={{ fontWeight: "bold" }}>فاتورة رقم: {d.invoice as string} ({d.paymentType as string})</div>
         <p>وعليه .... التزم بتصريف البضاعة المباعة وعدم إرجاعها ونتحمل المسئولية كامله .</p>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center" }}>
-          <div>المندوب: {d.rep as string}</div>
+        {/* Signature next to المندوب */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>المندوب: {d.rep as string}</span>
+            {showSignature && <SignatureImage width={90} height={45} />}
+          </div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
           <div>مدير القطاع: ............</div>
@@ -327,8 +395,12 @@ function RecordPrintContent({ record }: { record: FormRecord }) {
             <tbody>{oldItems.map((it: any, i: number) => <tr key={i}><td>{it.name}</td><td>{it.qty}</td><td>{it.date}</td></tr>)}</tbody>
           </table>
         )}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center" }}>
-          <div>المندوب: {d.rep as string}</div>
+        {/* Signature next to المندوب */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>المندوب: {d.rep as string}</span>
+            {showSignature && <SignatureImage width={90} height={45} />}
+          </div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
           <div>مدير القطاع: ............</div>
