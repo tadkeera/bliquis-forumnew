@@ -94,8 +94,8 @@ const DoctorSupportForm = () => {
         </div>
       </div>
 
-      {/* Print Preview - A4 (hidden by default, shown only for export) */}
-      <div id="doctor-support-print" ref={printRef} className="print-area print-page" style={{ display: "none" }}>
+      {/* Print Preview - A4 */}
+      <div id="doctor-support-print" ref={printRef} className="print-area print-page">
         <FormHeader />
         <h1 style={{ fontSize: "16px", fontWeight: "bold", margin: "5px 0 10px 0", textAlign: "center" }}>استمارة دعم طبيب</h1>
 

@@ -74,8 +74,8 @@ const ExtraBonusForm = () => {
         </div>
       </div>
 
-      {/* Print Preview (hidden by default) */}
-      <div id="extra-bonus-print" ref={printRef} className="print-area print-page" style={{ display: "none" }}>
+      {/* Print Preview */}
+      <div id="extra-bonus-print" ref={printRef} className="print-area print-page">
         <FormHeader />
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
           <div>التاريخ: <span className="out-text">{formData.date}</span></div>

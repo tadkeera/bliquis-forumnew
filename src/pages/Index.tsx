@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import { FileText, ClipboardList, Database, PenTool, Smartphone, Tablet, Monitor } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FileText, ClipboardList, Database, PenTool } from "lucide-react";
 
 const formCards = [
   {
@@ -43,18 +41,7 @@ const formCards = [
   },
 ];
 
-type ViewMode = "mobile" | "tablet" | "desktop";
-
-const viewModes: { mode: ViewMode; label: string; icon: typeof Smartphone; width: string }[] = [
-  { mode: "mobile", label: "هاتف", icon: Smartphone, width: "max-w-sm" },
-  { mode: "tablet", label: "تابلت", icon: Tablet, width: "max-w-2xl" },
-  { mode: "desktop", label: "ديسكتوب", icon: Monitor, width: "max-w-full" },
-];
-
 const Index = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>("desktop");
-  const currentView = viewModes.find(v => v.mode === viewMode)!;
-
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       {/* Hero */}
@@ -70,31 +57,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* View Mode Selector */}
-      <div className="container mx-auto px-4 pt-6">
-        <div className="flex items-center justify-center gap-2 bg-muted rounded-lg p-2 w-fit mx-auto">
-          {viewModes.map(({ mode, label, icon: Icon }) => (
-            <Button
-              key={mode}
-              variant={viewMode === mode ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode(mode)}
-              className="gap-2"
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Button>
-          ))}
-        </div>
-      </div>
-
       {/* Cards */}
-      <section className={`mx-auto px-4 py-12 ${currentView.width}`}>
-        <div className={`grid gap-6 ${
-          viewMode === "mobile" ? "grid-cols-1" : 
-          viewMode === "tablet" ? "grid-cols-2" : 
-          "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-        }`}>
+      <section className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {formCards.map((card) => (
             <Link
               key={card.path}

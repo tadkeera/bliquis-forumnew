@@ -86,8 +86,8 @@ const ConsignmentForm = () => {
         </div>
       </div>
 
-      {/* Print Preview (hidden by default) */}
-      <div id="consignment-print" ref={printRef} className="print-area print-page" style={{ display: "none" }}>
+      {/* Print Preview */}
+      <div id="consignment-print" ref={printRef} className="print-area print-page">
         <FormHeader />
         <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: "10px" }}>بسم الله الرحمن الرحيم</div>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
