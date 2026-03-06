@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import { FileText, ClipboardList, Database } from "lucide-react";
+import { FileText, ClipboardList, Database, PenTool } from "lucide-react";
 
 const formCards = [
   {
@@ -26,6 +26,12 @@ const formCards = [
     description: "عرض وإدارة جميع النماذج المحفوظة",
     path: "/reports",
     icon: ClipboardList,
+  },
+  {
+    title: "إدارة التوقيع",
+    description: "رفع وحفظ صورة التوقيع لإضافتها للنماذج",
+    path: "/signature",
+    icon: PenTool,
   },
   {
     title: "النسخ الاحتياطي",
