@@ -14,25 +14,44 @@ const ExportPdfButton = ({ elementId, fileName = "document.pdf", documentTitle =
   const { toast } = useToast();
   const [showShare, setShowShare] = useState(false);
 
+  const showElement = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "block";
+  };
+  const hideElement = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  };
+
   const handleExportPdf = async () => {
     try {
+      showElement(elementId);
       await exportToPdf(elementId, fileName);
+      hideElement(elementId);
       toast({ title: "تم التصدير بنجاح", description: "تم حفظ الملف بصيغة PDF" });
     } catch {
+      hideElement(elementId);
       toast({ title: "خطأ", description: "حدث خطأ أثناء التصدير", variant: "destructive" });
     }
   };
 
   const handleExportHtml = () => {
     try {
+      showElement(elementId);
       exportToHtml(elementId, fileName.replace('.pdf', '.html'));
+      hideElement(elementId);
       toast({ title: "تم التصدير", description: "تم حفظ الملف بصيغة HTML" });
     } catch {
+      hideElement(elementId);
       toast({ title: "خطأ", description: "حدث خطأ أثناء التصدير", variant: "destructive" });
     }
   };
 
-  const handlePrint = () => printElement(elementId);
+  const handlePrint = () => {
+    showElement(elementId);
+    printElement(elementId);
+    setTimeout(() => hideElement(elementId), 1000);
+  };
 
   return (
     <div className="flex flex-wrap gap-2 no-print relative">
