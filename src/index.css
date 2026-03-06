@@ -207,9 +207,42 @@
     height: auto !important;
     max-height: 120px !important;
   }
+
+  /* Signature wrapper - relative container */
+  .signature-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-top: 30px;
+  }
+
+  /* Name field with dotted line */
+  .name-field {
+    font-size: 16px;
+    font-weight: bold;
+    border-bottom: 2px dotted #333;
+    padding-bottom: 5px;
+    min-width: 250px;
+  }
+
+  /* Signature image - realistic positioning */
+  .signature-image {
+    position: absolute;
+    bottom: -15px;
+    left: 40px;
+    width: 150px;
+    height: auto;
+    z-index: 10;
+    mix-blend-mode: multiply;
+    transform: rotate(-3deg);
+    pointer-events: none;
+  }
 }
 
 @media print {
+  .signature-image {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   body * {
     visibility: hidden;
   }

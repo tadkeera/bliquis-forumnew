@@ -240,22 +240,18 @@ const Reports = () => {
   );
 };
 
-// Signature inline component
-function SignatureImage({ width = 80, height = 40 }: { width?: number; height?: number }) {
+// Signature inline component with realistic positioning
+function SignatureImage() {
   const sig = getSignature();
   if (!sig) return null;
   return (
-    <img
-      src={sig}
-      alt="التوقيع"
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-        objectFit: "contain",
-        display: "inline-block",
-        verticalAlign: "middle",
-      }}
-    />
+    <div className="signature-wrapper">
+      <img
+        src={sig}
+        alt="التوقيع"
+        className="signature-image"
+      />
+    </div>
   );
 }
 
@@ -291,7 +287,7 @@ function RecordPrintContent({ record, showSignature = false }: { record: FormRec
         <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginTop: "20px", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span>مقدم الطلب: {d.rep as string}</span>
-            {showSignature && <SignatureImage width={90} height={45} />}
+            {showSignature && <SignatureImage />}
           </div>
           <div>مدير الفرع: ............</div>
         </div>
@@ -358,7 +354,7 @@ function RecordPrintContent({ record, showSignature = false }: { record: FormRec
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span>المندوب: {d.rep as string}</span>
-            {showSignature && <SignatureImage width={90} height={45} />}
+            {showSignature && <SignatureImage />}
           </div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
@@ -399,7 +395,7 @@ function RecordPrintContent({ record, showSignature = false }: { record: FormRec
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span>المندوب: {d.rep as string}</span>
-            {showSignature && <SignatureImage width={90} height={45} />}
+            {showSignature && <SignatureImage />}
           </div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
