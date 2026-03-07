@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getByType, deleteRecord, updateRecord, type FormRecord } from "@/lib/db";
-import { exportToPdf, exportToHtml, printElement, shareViaWhatsApp, shareViaEmail } from "@/lib/pdfUtils";
-import { getSignature } from "@/lib/signature";
+import { printElement } from "@/lib/pdfUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Eye, FileDown, Pencil, Printer, FileCode, Share2, ArrowRight, PenTool } from "lucide-react";
+import { Trash2, Eye, Pencil, Printer, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import FormHeader from "@/components/FormHeader";
@@ -32,8 +31,6 @@ const Reports = () => {
   const [viewRecord, setViewRecord] = useState<FormRecord | null>(null);
   const [editRecord, setEditRecord] = useState<FormRecord | null>(null);
   const [editData, setEditData] = useState<Record<string, any>>({});
-  const [showShareMenu, setShowShareMenu] = useState<string | null>(null);
-  const [signatureRecord, setSignatureRecord] = useState<FormRecord | null>(null);
   const { toast } = useToast();
 
   useEffect(() => { setRecords(getByType(formType)); }, [formType]);
@@ -45,22 +42,6 @@ const Reports = () => {
   };
 
   const reload = () => setRecords(getByType(formType));
-
-  const handleExportPdf = async (record: FormRecord) => {
-    setViewRecord(record);
-    setTimeout(async () => {
-      await exportToPdf("record-preview-print", `${typeLabels[record.type] || record.type}-${getRecordName(record)}.pdf`);
-      setViewRecord(null);
-    }, 800);
-  };
-
-  const handleExportHtml = (record: FormRecord) => {
-    setViewRecord(record);
-    setTimeout(() => {
-      exportToHtml("record-preview-print", `${typeLabels[record.type] || record.type}-${getRecordName(record)}.html`);
-      setViewRecord(null);
-    }, 800);
-  };
 
   const handlePrint = (record: FormRecord) => {
     setViewRecord(record);
@@ -81,15 +62,6 @@ const Reports = () => {
     reload();
     setEditRecord(null);
     toast({ title: "تم التعديل", description: "تم تحديث السجل بنجاح" });
-  };
-
-  const handleAddSignature = (record: FormRecord) => {
-    const sig = getSignature();
-    if (!sig) {
-      toast({ title: "لا يوجد توقيع", description: "يرجى رفع توقيع أولاً من صفحة إدارة التوقيع", variant: "destructive" });
-      return;
-    }
-    setSignatureRecord(record);
   };
 
   const editableFields: Record<string, { key: string; label: string }[]> = {
@@ -139,35 +111,15 @@ const Reports = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-wrap">
-                <Button variant="ghost" size="icon" title="عرض" onClick={() => setViewRecord(record)}>
+                <Button variant="ghost" size="icon" title="معاينة" onClick={() => setViewRecord(record)}>
                   <Eye className="h-4 w-4 text-primary" />
-                </Button>
-                <Button variant="ghost" size="icon" title="إضافة صورة التوقيع" onClick={() => handleAddSignature(record)}>
-                  <PenTool className="h-4 w-4 text-primary" />
                 </Button>
                 <Button variant="ghost" size="icon" title="تعديل" onClick={() => startEdit(record)}>
                   <Pencil className="h-4 w-4 text-primary" />
                 </Button>
-                <Button variant="ghost" size="icon" title="تصدير PDF" onClick={() => handleExportPdf(record)}>
-                  <FileDown className="h-4 w-4 text-primary" />
-                </Button>
-                <Button variant="ghost" size="icon" title="تصدير HTML" onClick={() => handleExportHtml(record)}>
-                  <FileCode className="h-4 w-4 text-primary" />
-                </Button>
                 <Button variant="ghost" size="icon" title="طباعة" onClick={() => handlePrint(record)}>
                   <Printer className="h-4 w-4 text-primary" />
                 </Button>
-                <div className="relative">
-                  <Button variant="ghost" size="icon" title="مشاركة" onClick={() => setShowShareMenu(showShareMenu === record.id ? null : record.id)}>
-                    <Share2 className="h-4 w-4 text-primary" />
-                  </Button>
-                  {showShareMenu === record.id && (
-                    <div className="absolute top-full mt-1 left-0 bg-card border rounded-lg shadow-lg p-2 z-50 min-w-[140px]">
-                      <button onClick={() => { shareViaWhatsApp(`${typeLabels[record.type]} - ${getRecordName(record)}`); setShowShareMenu(null); }} className="w-full text-right px-3 py-2 hover:bg-muted rounded text-sm font-bold">واتساب</button>
-                      <button onClick={() => { shareViaEmail(typeLabels[record.type], `${typeLabels[record.type]} - ${getRecordName(record)}`); setShowShareMenu(null); }} className="w-full text-right px-3 py-2 hover:bg-muted rounded text-sm font-bold">بريد إلكتروني</button>
-                    </div>
-                  )}
-                </div>
                 <Button variant="ghost" size="icon" title="حذف" onClick={() => handleDelete(record.id)}>
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
@@ -178,43 +130,14 @@ const Reports = () => {
       )}
 
       {/* View Dialog */}
-      <Dialog open={!!viewRecord && !editRecord && !signatureRecord} onOpenChange={() => setViewRecord(null)}>
+      <Dialog open={!!viewRecord && !editRecord} onOpenChange={() => setViewRecord(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{viewRecord ? typeLabels[viewRecord.type] : ""}</DialogTitle></DialogHeader>
           {viewRecord && (
             <div id="record-preview-print" className="print-page" style={{ border: "2px solid #000", borderRadius: "5px" }}>
               <FormHeader />
-              <RecordPrintContent record={viewRecord} showSignature={false} />
+              <RecordPrintContent record={viewRecord} />
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Signature Preview Dialog */}
-      <Dialog open={!!signatureRecord} onOpenChange={() => setSignatureRecord(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>معاينة مع التوقيع</DialogTitle></DialogHeader>
-          {signatureRecord && (
-            <>
-              <div id="record-preview-print" className="print-page" style={{ border: "2px solid #000", borderRadius: "5px" }}>
-                <FormHeader />
-                <RecordPrintContent record={signatureRecord} showSignature={true} />
-              </div>
-              <div className="flex gap-2 mt-3 justify-center flex-wrap">
-                <Button onClick={async () => {
-                  await exportToPdf("record-preview-print", `${typeLabels[signatureRecord.type]}-${getRecordName(signatureRecord)}-موقع.pdf`);
-                }}>
-                  <FileDown className="h-4 w-4 ml-1" />
-                  تصدير PDF
-                </Button>
-                <Button variant="outline" onClick={() => {
-                  printElement("record-preview-print");
-                }}>
-                  <Printer className="h-4 w-4 ml-1" />
-                  طباعة
-                </Button>
-              </div>
-            </>
           )}
         </DialogContent>
       </Dialog>
@@ -240,26 +163,7 @@ const Reports = () => {
   );
 };
 
-// Signature inline component
-function SignatureImage({ width = 80, height = 40 }: { width?: number; height?: number }) {
-  const sig = getSignature();
-  if (!sig) return null;
-  return (
-    <img
-      src={sig}
-      alt="التوقيع"
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-        objectFit: "contain",
-        display: "inline-block",
-        verticalAlign: "middle",
-      }}
-    />
-  );
-}
-
-function RecordPrintContent({ record, showSignature = false }: { record: FormRecord; showSignature?: boolean }) {
+function RecordPrintContent({ record }: { record: FormRecord }) {
   const d = record.data;
 
   if (record.type === "doctor-support") {
@@ -280,19 +184,25 @@ function RecordPrintContent({ record, showSignature = false }: { record: FormRec
         </div>
         <div className="flex-row"><span>مقابل / </span><span className="dotted-line out-text">{d.purpose as string}</span></div>
         <div className="flex-row"><span>لكتابة الأصناف التالية: </span><span className="dotted-line out-text">{d.items as string}</span></div>
-        {pharmacies.length > 0 && (
+        
+        {/* Pharmacies section - always show header */}
+        <div style={{ marginTop: "5px" }}>
+          <span style={{ fontWeight: "bold" }}>والصيدليات المجاورة للمذكور:</span>
           <table className="compact-table">
             <thead><tr><th>اسم الصيدلية</th><th>رقم الهاتف</th><th>قيمة المشتريات</th></tr></thead>
-            <tbody>{pharmacies.map((p: any, i: number) => <tr key={i}><td>{p.name}</td><td>{p.phone}</td><td>{p.amount}</td></tr>)}</tbody>
+            <tbody>
+              {pharmacies.length === 0 ? (
+                <tr><td colSpan={3} style={{ color: "#777" }}>لم يتم إضافة صيدليات</td></tr>
+              ) : pharmacies.map((p: any, i: number) => (
+                <tr key={i}><td>{p.name}</td><td>{p.phone}</td><td>{p.amount}</td></tr>
+              ))}
+            </tbody>
           </table>
-        )}
+        </div>
+
         <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "12px" }}>وعليه نلتزم بوفاء المذكور بكتابة الأصناف، وفي حالة عدم الوفاء فنحن نتحمل المسؤولية كاملة.</p>
-        {/* Applicant signature area - signature placed next to مقدم الطلب */}
         <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginTop: "20px", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span>مقدم الطلب: {d.rep as string}</span>
-            {showSignature && <SignatureImage width={90} height={45} />}
-          </div>
+          <div>مقدم الطلب: {d.rep as string}</div>
           <div>مدير الفرع: ............</div>
         </div>
 
@@ -344,7 +254,7 @@ function RecordPrintContent({ record, showSignature = false }: { record: FormRec
         <div style={{ fontWeight: "bold", marginBottom: "5px" }}>الأخ/ {d.recipient as string}</div>
         <div style={{ textAlign: "left", fontWeight: "bold", marginBottom: "5px" }}>المحترم</div>
         <p style={{ textAlign: "center" }}>بعد التحية ،،،،،</p>
-        <div style={{ fontWeight: "bold" }}>الموضوع: بونص اضافي او دعم {d.subject as string}</div>
+        <div style={{ fontWeight: "bold" }}>الموضوع: {d.subject as string}</div>
         <p>بالإشارة الى الموضوع أعلاه نرجو تكرمكم بالموافقة على صرف البونص الإضافي للمذكور وذلك على النحو التالي :-</p>
         {items.length > 0 && (
           <table className="compact-table">
@@ -354,12 +264,8 @@ function RecordPrintContent({ record, showSignature = false }: { record: FormRec
         )}
         <div style={{ fontWeight: "bold" }}>فاتورة رقم: {d.invoice as string} ({d.paymentType as string})</div>
         <p>وعليه .... التزم بتصريف البضاعة المباعة وعدم إرجاعها ونتحمل المسئولية كامله .</p>
-        {/* Signature next to المندوب */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span>المندوب: {d.rep as string}</span>
-            {showSignature && <SignatureImage width={90} height={45} />}
-          </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center" }}>
+          <div>المندوب: {d.rep as string}</div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
           <div>مدير القطاع: ............</div>
@@ -377,6 +283,14 @@ function RecordPrintContent({ record, showSignature = false }: { record: FormRec
         <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", margin: "10px 0" }}>
           <div>التاريخ: {d.date as string}</div><div>الفرع: {d.branch as string}</div>
         </div>
+        <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginBottom: "15px" }}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span>الاخ / مدير القطاع</span>
+            <span>الاخ / مدير المكتب العلمي</span>
+          </div>
+          <div style={{ alignSelf: "flex-end" }}>المحترمين</div>
+        </div>
+        <p>بعد التحية ،،،،،،،،،،</p>
         <div style={{ fontWeight: "bold", textAlign: "center", textDecoration: "underline", margin: "10px 0" }}>
           الموضوع: إنزال بضاعة تحت التصريف
         </div>
@@ -395,12 +309,8 @@ function RecordPrintContent({ record, showSignature = false }: { record: FormRec
             <tbody>{oldItems.map((it: any, i: number) => <tr key={i}><td>{it.name}</td><td>{it.qty}</td><td>{it.date}</td></tr>)}</tbody>
           </table>
         )}
-        {/* Signature next to المندوب */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span>المندوب: {d.rep as string}</span>
-            {showSignature && <SignatureImage width={90} height={45} />}
-          </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontWeight: "bold", textAlign: "center" }}>
+          <div>المندوب: {d.rep as string}</div>
           <div>مدير الفرع: ............</div>
           <div>المكتب العلمي: ............</div>
           <div>مدير القطاع: ............</div>

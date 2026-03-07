@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormHeader from "@/components/FormHeader";
-import ExportPdfButton from "@/components/ExportPdfButton";
 import { save } from "@/lib/db";
+import { printElement } from "@/lib/pdfUtils";
 import { useToast } from "@/hooks/use-toast";
-import { Save, RotateCcw, Plus, Trash2, UserPlus } from "lucide-react";
+import { Save, RotateCcw, Plus, Trash2, UserPlus, Eye, Printer } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface ConsignmentItem { name: string; qty: string; date: string; }
 interface ClientGroup { clientName: string; items: ConsignmentItem[]; }
@@ -16,6 +17,7 @@ const ConsignmentForm = () => {
   const [formData, setFormData] = useState({ date: "", branch: "", rep: "" });
   const [clients, setClients] = useState<ClientGroup[]>([{ clientName: "", items: [] }]);
   const [newItems, setNewItems] = useState<Record<number, ConsignmentItem>>({});
+  const [showPreview, setShowPreview] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
@@ -41,6 +43,49 @@ const ConsignmentForm = () => {
   };
 
   const handleReset = () => { setFormData({ date: "", branch: "", rep: "" }); setClients([{ clientName: "", items: [] }]); };
+
+  const handlePrint = () => {
+    setShowPreview(true);
+    setTimeout(() => {
+      printElement("consignment-print");
+      setShowPreview(false);
+    }, 800);
+  };
+
+  const PrintContent = () => (
+    <div id="consignment-print" ref={printRef} className="print-page" style={{ border: "2px solid #000", borderRadius: "5px" }}>
+      <FormHeader />
+      <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: "10px" }}>بسم الله الرحمن الرحيم</div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
+        <div>التاريخ: <span className="out-text">{formData.date}</span></div>
+        <div>الفرع: <span className="out-text">{formData.branch}</span></div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginBottom: "15px" }}>
+        <div style={{ display: "flex", flexDirection: "column" }}><span>الاخ / مدير القطاع</span><span>الاخ / مدير المكتب العلمي</span></div>
+        <div style={{ alignSelf: "flex-end" }}>المحترمين</div>
+      </div>
+      <p>بعد التحية ،،،،،،،،،،</p>
+      <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "16px", margin: "15px 0", textDecoration: "underline" }}>الموضوع: إنزال بضاعة تحت التصريف</div>
+      <p>اشارة الى الموضوع اعلاه ، نرجو منكم الموافقة على أنزال الاصناف التالية تحت التصريف وعلى مسئوليتي متابعتها أولاً بأول وعدم وجود أي منتهيات والاصناف هي :</p>
+      {clients.map((client, cIdx) => (
+        <div key={cIdx} style={{ marginBottom: "10px" }}>
+          <div style={{ fontWeight: "bold", marginBottom: "5px" }}>العميل: <span className="out-text">{client.clientName}</span></div>
+          <table className="compact-table">
+            <thead><tr><th>اسم الصنف</th><th>الكمية</th><th>التاريخ</th></tr></thead>
+            <tbody>
+              {client.items.length === 0 ? <tr><td colSpan={3} style={{ color: "#777" }}>لم يتم إضافة أصناف</td></tr> : client.items.map((item, i) => <tr key={i}><td>{item.name}</td><td>{item.qty}</td><td>{item.date}</td></tr>)}
+            </tbody>
+          </table>
+        </div>
+      ))}
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", fontWeight: "bold", textAlign: "center" }}>
+        <div>المندوب<br /><span className="out-text">{formData.rep}</span></div>
+        <div>مدير الفرع<br /><br />...................</div>
+        <div>المكتب العلمي<br /><br />...................</div>
+        <div>مدير القطاع<br /><br />...................</div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
@@ -81,44 +126,19 @@ const ConsignmentForm = () => {
         <Button variant="outline" onClick={addClient} className="gap-2 mb-4"><UserPlus className="h-4 w-4" />إضافة عميل آخر</Button>
         <div className="flex flex-wrap gap-3 mt-4">
           <Button onClick={handleSave} className="gap-2"><Save className="h-4 w-4" />حفظ</Button>
+          <Button variant="outline" onClick={handlePrint} className="gap-2"><Printer className="h-4 w-4" />طباعة مباشرة</Button>
+          <Button variant="outline" onClick={() => setShowPreview(true)} className="gap-2"><Eye className="h-4 w-4" />معاينة</Button>
           <Button variant="outline" onClick={handleReset} className="gap-2"><RotateCcw className="h-4 w-4" />مسح</Button>
-          <ExportPdfButton elementId="consignment-print" fileName="نموذج-تصريف.pdf" documentTitle="نموذج تصريف" />
         </div>
       </div>
 
-      {/* Print Preview */}
-      <div id="consignment-print" ref={printRef} className="print-area print-page">
-        <FormHeader />
-        <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: "10px" }}>بسم الله الرحمن الرحيم</div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
-          <div>التاريخ: <span className="out-text">{formData.date}</span></div>
-          <div>الفرع: <span className="out-text">{formData.branch}</span></div>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", marginBottom: "15px" }}>
-          <div style={{ display: "flex", flexDirection: "column" }}><span>الاخ / مدير القطاع</span><span>الاخ / مدير المكتب العلمي</span></div>
-          <div style={{ alignSelf: "flex-end" }}>المحترمين</div>
-        </div>
-        <p>بعد التحية ،،،،،،،،،،</p>
-        <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "16px", margin: "15px 0", textDecoration: "underline" }}>الموضوع: إنزال بضاعة تحت التصريف</div>
-        <p>اشارة الى الموضوع اعلاه ، نرجو منكم الموافقة على أنزال الاصناف التالية تحت التصريف وعلى مسئوليتي متابعتها أولاً بأول وعدم وجود أي منتهيات والاصناف هي :</p>
-        {clients.map((client, cIdx) => (
-          <div key={cIdx} style={{ marginBottom: "10px" }}>
-            <div style={{ fontWeight: "bold", marginBottom: "5px" }}>العميل: <span className="out-text">{client.clientName}</span></div>
-            <table className="compact-table">
-              <thead><tr><th>اسم الصنف</th><th>الكمية</th><th>التاريخ</th></tr></thead>
-              <tbody>
-                {client.items.length === 0 ? <tr><td colSpan={3} style={{ color: "#777" }}>لم يتم إضافة أصناف</td></tr> : client.items.map((item, i) => <tr key={i}><td>{item.name}</td><td>{item.qty}</td><td>{item.date}</td></tr>)}
-              </tbody>
-            </table>
-          </div>
-        ))}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", fontWeight: "bold", textAlign: "center" }}>
-          <div>المندوب<br /><span className="out-text">{formData.rep}</span></div>
-          <div>مدير الفرع<br /><br />...................</div>
-          <div>المكتب العلمي<br /><br />...................</div>
-          <div>مدير القطاع<br /><br />...................</div>
-        </div>
-      </div>
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>معاينة نموذج تصريف</DialogTitle></DialogHeader>
+          <PrintContent />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

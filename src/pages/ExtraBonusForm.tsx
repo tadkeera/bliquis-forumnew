@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FormHeader from "@/components/FormHeader";
-import ExportPdfButton from "@/components/ExportPdfButton";
 import { save } from "@/lib/db";
+import { printElement } from "@/lib/pdfUtils";
 import { useToast } from "@/hooks/use-toast";
-import { Save, RotateCcw, Plus, Trash2 } from "lucide-react";
+import { Save, RotateCcw, Plus, Trash2, Eye, Printer } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface BonusItem { name: string; qty: string; bonusPercent: string; compensation: string; }
 
@@ -16,6 +17,7 @@ const ExtraBonusForm = () => {
   const [formData, setFormData] = useState({ date: "", branch: "", recipient: "", subject: "", invoice: "", paymentType: "", rep: "" });
   const [items, setItems] = useState<BonusItem[]>([]);
   const [newItem, setNewItem] = useState<BonusItem>({ name: "", qty: "", bonusPercent: "", compensation: "" });
+  const [showPreview, setShowPreview] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
@@ -28,6 +30,43 @@ const ExtraBonusForm = () => {
   };
 
   const handleReset = () => { setFormData({ date: "", branch: "", recipient: "", subject: "", invoice: "", paymentType: "", rep: "" }); setItems([]); };
+
+  const handlePrint = () => {
+    setShowPreview(true);
+    setTimeout(() => {
+      printElement("extra-bonus-print");
+      setShowPreview(false);
+    }, 800);
+  };
+
+  const PrintContent = () => (
+    <div id="extra-bonus-print" ref={printRef} className="print-page" style={{ border: "2px solid #000", borderRadius: "5px" }}>
+      <FormHeader />
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
+        <div>التاريخ: <span className="out-text">{formData.date}</span></div>
+        <div>الفرع: <span className="out-text">{formData.branch}</span></div>
+      </div>
+      <div style={{ fontWeight: "bold", marginBottom: "5px" }}>الأخ/ <span className="out-text">{formData.recipient}</span></div>
+      <div style={{ textAlign: "left", fontWeight: "bold", marginBottom: "5px" }}>المحترم</div>
+      <p style={{ textAlign: "center" }}>بعد التحية ،،،،،</p>
+      <div style={{ fontWeight: "bold", margin: "10px 0" }}>الموضوع: <span className="out-text">{formData.subject}</span></div>
+      <p>بالإشارة الى الموضوع أعلاه نرجو تكرمكم بالموافقة على صرف البونص الإضافي للمذكور وذلك على النحو التالي :-</p>
+      <table className="compact-table">
+        <thead><tr><th>الرقم</th><th>اسم الصنف</th><th>الكمية المشتراة</th><th>نسبة البونص</th><th>كمية التعويض عدد</th></tr></thead>
+        <tbody>
+          {items.length === 0 ? <tr><td colSpan={5} style={{ color: "#777" }}>لم يتم إضافة أصناف</td></tr> : items.map((item, i) => <tr key={i}><td>{i + 1}</td><td>{item.name}</td><td>{item.qty}</td><td>{item.bonusPercent}</td><td>{item.compensation}</td></tr>)}
+        </tbody>
+      </table>
+      <div style={{ fontWeight: "bold", marginBottom: "15px" }}>وذلك بفاتورة رقم: <span className="out-text">{formData.invoice}</span> (<span className="out-text">{formData.paymentType}</span>)</div>
+      <p>وعليه .... التزم بتصريف البضاعة المباعة وعدم إرجاعها ونتحمل المسئولية كامله .</p>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", fontWeight: "bold", textAlign: "center" }}>
+        <div>المندوب<br /><span className="out-text">{formData.rep}</span></div>
+        <div>مدير الفرع<br /><br />...................</div>
+        <div>المكتب العلمي<br /><br />...................</div>
+        <div>مدير القطاع<br /><br />...................</div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
@@ -69,38 +108,19 @@ const ExtraBonusForm = () => {
         )}
         <div className="flex flex-wrap gap-3 mt-6">
           <Button onClick={handleSave} className="gap-2"><Save className="h-4 w-4" />حفظ</Button>
+          <Button variant="outline" onClick={handlePrint} className="gap-2"><Printer className="h-4 w-4" />طباعة مباشرة</Button>
+          <Button variant="outline" onClick={() => setShowPreview(true)} className="gap-2"><Eye className="h-4 w-4" />معاينة</Button>
           <Button variant="outline" onClick={handleReset} className="gap-2"><RotateCcw className="h-4 w-4" />مسح</Button>
-          <ExportPdfButton elementId="extra-bonus-print" fileName="نموذج-بونص-إضافي.pdf" documentTitle="نموذج بونص إضافي" />
         </div>
       </div>
 
-      {/* Print Preview */}
-      <div id="extra-bonus-print" ref={printRef} className="print-area print-page">
-        <FormHeader />
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px", fontWeight: "bold" }}>
-          <div>التاريخ: <span className="out-text">{formData.date}</span></div>
-          <div>الفرع: <span className="out-text">{formData.branch}</span></div>
-        </div>
-        <div style={{ fontWeight: "bold", marginBottom: "5px" }}>الأخ/ <span className="out-text">{formData.recipient}</span></div>
-        <div style={{ textAlign: "left", fontWeight: "bold", marginBottom: "5px" }}>المحترم</div>
-        <p style={{ textAlign: "center" }}>بعد التحية ،،،،،</p>
-        <div style={{ fontWeight: "bold", margin: "10px 0" }}>الموضوع: بونص اضافي او دعم <span className="out-text">{formData.subject}</span></div>
-        <p>بالإشارة الى الموضوع أعلاه نرجو تكرمكم بالموافقة على صرف البونص الإضافي للمذكور وذلك على النحو التالي :-</p>
-        <table className="compact-table">
-          <thead><tr><th>الرقم</th><th>اسم الصنف</th><th>الكمية المشتراة</th><th>نسبة البونص</th><th>كمية التعويض عدد</th></tr></thead>
-          <tbody>
-            {items.length === 0 ? <tr><td colSpan={5} style={{ color: "#777" }}>لم يتم إضافة أصناف</td></tr> : items.map((item, i) => <tr key={i}><td>{i + 1}</td><td>{item.name}</td><td>{item.qty}</td><td>{item.bonusPercent}</td><td>{item.compensation}</td></tr>)}
-          </tbody>
-        </table>
-        <div style={{ fontWeight: "bold", marginBottom: "15px" }}>وذلك بفاتورة رقم: <span className="out-text">{formData.invoice}</span> (<span className="out-text">{formData.paymentType}</span>)</div>
-        <p>وعليه .... التزم بتصريف البضاعة المباعة وعدم إرجاعها ونتحمل المسئولية كامله .</p>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "50px", fontWeight: "bold", textAlign: "center" }}>
-          <div>المندوب<br /><span className="out-text">{formData.rep}</span></div>
-          <div>مدير الفرع<br /><br />...................</div>
-          <div>المكتب العلمي<br /><br />...................</div>
-          <div>مدير القطاع<br /><br />...................</div>
-        </div>
-      </div>
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>معاينة نموذج بونص إضافي</DialogTitle></DialogHeader>
+          <PrintContent />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import { FileText, ClipboardList, Database, PenTool } from "lucide-react";
+import { FileText, ClipboardList, Database } from "lucide-react";
 
 const formCards = [
   {
@@ -28,12 +28,6 @@ const formCards = [
     icon: ClipboardList,
   },
   {
-    title: "إدارة التوقيع",
-    description: "رفع وحفظ صورة التوقيع لإضافتها للنماذج",
-    path: "/signature",
-    icon: PenTool,
-  },
-  {
     title: "النسخ الاحتياطي",
     description: "إدارة البيانات والنسخ الاحتياطي",
     path: "/data-management",
@@ -44,7 +38,6 @@ const formCards = [
 const Index = () => {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      {/* Hero */}
       <section className="bg-primary py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
           <img src={logo} alt="شعار مخازن بلقيس للأدوية" className="h-24 w-24 mx-auto mb-6 rounded-xl bg-card p-2 shadow-lg" />
@@ -56,8 +49,6 @@ const Index = () => {
           </p>
         </div>
       </section>
-
-      {/* Cards */}
       <section className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {formCards.map((card) => (
