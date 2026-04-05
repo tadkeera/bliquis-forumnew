@@ -1,11 +1,26 @@
 {
   "name": "نماذج مخازن بلقيس للأدوية",
   "short_name": "بلقيس",
+  "description": "نظام إلكتروني لإدارة وطباعة النماذج الرسمية لشركة مخازن بلقيس للأدوية",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f0f2f5",
   "theme_color": "#1a3a6b",
+  "lang": "ar",
+  "dir": "rtl",
   "icons": [
-    { "src": "/favicon.ico", "sizes": "64x64", "type": "image/x-icon" }
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
