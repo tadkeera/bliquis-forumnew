@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logo from "@/assets/logo.png";
+import { LOGO_BASE64 as logo } from "@/assets/logoBase64";
 
 const ACTIVATION_CODE = "WALEED770976667YAMAN";
 const ACTIVATED_KEY = "bilquis-activated";

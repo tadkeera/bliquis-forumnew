@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import { LOGO_BASE64 as logo } from "@/assets/logoBase64";
 import { FileText, Home, ClipboardList, Database, Menu, X } from "lucide-react";
 
 const navItems = [
