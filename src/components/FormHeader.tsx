@@ -1,4 +1,4 @@
-import logo from "@/assets/logo.png";
+import { LOGO_BASE64 } from "@/assets/logoBase64";
 
 const FormHeader = () => {
   return (
