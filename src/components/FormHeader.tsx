@@ -24,7 +24,7 @@ const FormHeader = () => {
 
       {/* Center - Logo + URL */}
       <div style={{ textAlign: "center", width: "25%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <img src={logo} alt="Logo" style={{ maxHeight: "38px", objectFit: "contain" }} />
+        <img src={LOGO_BASE64} alt="Logo" style={{ maxHeight: "38px", objectFit: "contain" }} />
         <span style={{ fontSize: "10px", color: "#333", fontWeight: "bold", marginTop: "2px" }}>www.bilquis-yo.com</span>
       </div>
 
