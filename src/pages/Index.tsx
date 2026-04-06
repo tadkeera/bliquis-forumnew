@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import { LOGO_BASE64 as logo } from "@/assets/logoBase64";
 import { FileText, ClipboardList, Database } from "lucide-react";
 
 const formCards = [
